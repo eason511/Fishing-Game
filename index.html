@@ -5,23 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fishing Game</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        button { margin: 5px; padding: 10px; }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .button-container {
+            margin: 20px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #fishingArea {
+            width: 100%;
+            height: 300px;
+            background-color: lightblue;
+            position: relative;
+            margin-top: 20px;
+        }
+        .clickableArea {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 0, 0, 0.5);
+            border-radius: 50%;
+            display: none;
+            pointer-events: auto;
+        }
+        #status {
+            font-size: 18px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>Fishing Game</h1>
+    
+    <!-- 按鈕區 -->
+    <div class="button-container">
+        <button onclick="game.startFishing()">Start Fishing</button>
+        <button onclick="game.upgradeRod()">Upgrade Rod</button>
+        <button onclick="saveGame()">Save Game</button>
+        <button onclick="resetGame()">Reset Game</button>
+        <select id="waterBodySelect" onchange="game.changeWaterBody(this.value)">
+            <option value="Pond">Pond</option>
+            <option value="River">River</option>
+            <option value="Lake">Lake</option>
+            <option value="Ocean">Ocean</option>
+        </select>
+    </div>
+    
+    <!-- 釣魚區 -->
+    <div id="fishingArea"></div>
     <p id="status">Welcome to the fishing game!</p>
-    <button onclick="game.startFishing()">Start Fishing</button>
-    <button onclick="game.upgradeRod()">Upgrade Rod</button>
-    <button onclick="saveGame()">Save Game</button> <!-- 存檔按鈕 -->
-    <button onclick="resetGame()">Reset Game</button> <!-- 重置遊戲按鈕 -->
-    <select id="waterBodySelect" onchange="game.changeWaterBody(this.value)">
-        <option value="Pond">Pond</option>
-        <option value="River">River</option>
-        <option value="Lake">Lake</option>
-        <option value="Ocean">Ocean</option>
-    </select>
 
     <script>
         class FishingGame {
@@ -38,6 +79,7 @@
                 this.rodLevel = 1;
                 this.waterBodies = ["Pond", "River", "Lake", "Ocean"];
                 this.currentWaterBody = "Pond";
+                this.successfulClick = false;
             }
 
             upgradeRod() {
@@ -67,6 +109,8 @@
                 this.isFishing = true;
                 this.updateStatus(`Casting the fishing line in ${this.currentWaterBody}...`);
 
+                this.displayClickableArea();  // 顯示釣魚點擊區域
+
                 setTimeout(() => {
                     this.catchFish();
                 }, Math.random() * 3000 + 2000 - this.rodLevel * 200); // Faster with better rod
@@ -76,7 +120,8 @@
                 this.isFishing = false;
                 const fish = this.getRandomFish();
                 this.fishCaught++;
-                this.updateStatus(`You caught a ${fish.name} (${fish.rarity}) in ${this.currentWaterBody}!`);
+                const successMessage = this.successfulClick ? `Success! You caught a ${fish.name} (${fish.rarity})!` : `You caught a ${fish.name} (${fish.rarity}).`;
+                this.updateStatus(successMessage);
             }
 
             getRandomFish() {
@@ -101,6 +146,38 @@
 
             updateStatus(message) {
                 document.getElementById("status").innerText = message;
+            }
+
+            // 顯示釣魚點擊區域
+            displayClickableArea() {
+                const area = document.createElement("div");
+                area.classList.add("clickableArea");
+
+                const fishingArea = document.getElementById("fishingArea");
+                const maxX = fishingArea.clientWidth - 100;
+                const maxY = fishingArea.clientHeight - 100;
+                const randomX = Math.random() * maxX;
+                const randomY = Math.random() * maxY;
+
+                area.style.left = `${randomX}px`;
+                area.style.top = `${randomY}px`;
+                fishingArea.appendChild(area);
+
+                // 點擊成功
+                area.addEventListener("click", () => {
+                    this.successfulClick = true;
+                    area.style.backgroundColor = "rgba(0, 255, 0, 0.5)"; // 成功點擊的顏色
+                    this.updateStatus("You clicked the right spot! Increased success rate.");
+                    setTimeout(() => area.remove(), 500); // 0.5秒後移除區域
+                });
+
+                // 隨機時間後移除點擊區域
+                setTimeout(() => {
+                    if (!this.successfulClick) {
+                        this.updateStatus("You missed the right spot.");
+                        area.remove();
+                    }
+                }, 2000); // 2秒後若未點擊，移除區域
             }
         }
 
