@@ -167,3 +167,44 @@
     </script>
 </body>
 </html>
+function saveGame() {
+    const saveData = {
+        gold: game.gold,
+        rodLevel: game.rodLevel,
+        skills: game.skills,
+        fishCaught: game.fishCaught,
+        bestCatch: game.bestCatch,
+        currentWaterBody: game.currentWaterBody
+    };
+    
+    try {
+        localStorage.setItem("fishingGameSave", JSON.stringify(saveData));
+        showSaveMessage("💾 存檔成功！");
+    } catch (error) {
+        showSaveMessage("❌ 存檔失敗，請重試", true);
+    }
+}
+
+// 顯示存檔訊息
+function showSaveMessage(message, isError = false) {
+    const msgBox = document.createElement("div");
+    msgBox.innerText = message;
+    msgBox.style.position = "fixed";
+    msgBox.style.bottom = "20px";
+    msgBox.style.left = "50%";
+    msgBox.style.transform = "translateX(-50%)";
+    msgBox.style.padding = "10px 20px";
+    msgBox.style.backgroundColor = isError ? "red" : "green";
+    msgBox.style.color = "white";
+    msgBox.style.borderRadius = "5px";
+    msgBox.style.fontSize = "16px";
+    msgBox.style.opacity = "1";
+    document.body.appendChild(msgBox);
+
+    // 淡出效果
+    setTimeout(() => {
+        msgBox.style.transition = "opacity 1s";
+        msgBox.style.opacity = "0";
+        setTimeout(() => msgBox.remove(), 1000);
+    }, 2000);
+}
