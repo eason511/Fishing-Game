@@ -1,0 +1,110 @@
+<script>
+    class FishingGame {
+        constructor() {
+            this.fishCaught = 0;
+            this.isFishing = false;
+            this.rodLevel = 1;
+            this.coins = 100;
+            this.currentWaterBody = "Pond";
+            this.baitLevel = 1;
+            this.netOwned = false;
+
+            this.fishTypes = {
+                Pond: [
+                    { name: "Bluegill", rarity: "Common", value: 5 },
+                    { name: "Catfish", rarity: "Uncommon", value: 10 },
+                    { name: "Golden Carp", rarity: "Rare", value: 25 }
+                ],
+                River: [
+                    { name: "Trout", rarity: "Common", value: 8 },
+                    { name: "Salmon", rarity: "Uncommon", value: 15 },
+                    { name: "Sturgeon", rarity: "Rare", value: 40 }
+                ],
+                Ocean: [
+                    { name: "Mackerel", rarity: "Common", value: 7 },
+                    { name: "Tuna", rarity: "Uncommon", value: 20 },
+                    { name: "Shark", rarity: "Rare", value: 50 },
+                    { name: "Golden Whale", rarity: "Legendary", value: 200 }
+                ]
+            };
+
+            this.updateUI();
+        }
+
+        startFishing() {
+            if (this.isFishing) return;
+            this.isFishing = true;
+            this.updateStatus("Casting the fishing line... 🎣");
+
+            let fishingTime = 2000 - this.rodLevel * 200 - this.baitLevel * 100;
+
+            setTimeout(() => {
+                this.catchFish();
+            }, fishingTime);
+        }
+
+        catchFish() {
+            this.isFishing = false;
+            const fish = this.getRandomFish();
+            this.fishCaught++;
+            this.coins += fish.value;
+            this.updateStatus(`You caught a ${fish.name} (${fish.rarity})! 💰 +${fish.value} Coins`);
+            this.updateUI();
+        }
+
+        getRandomFish() {
+            const fishList = this.fishTypes[this.currentWaterBody];
+            const rarityBoost = this.baitLevel * 5;
+            let random = Math.random() * 100;
+
+            let accumulatedChance = 0;
+            for (const fish of fishList) {
+                let baseChance = fish.rarity === "Common" ? 50 : fish.rarity === "Uncommon" ? 30 : 20;
+                baseChance += rarityBoost;
+
+                accumulatedChance += baseChance;
+                if (random <= accumulatedChance) {
+                    return fish;
+                }
+            }
+            return fishList[0]; // 預防萬一
+        }
+
+        buyBait() {
+            if (this.coins >= 50) {
+                this.coins -= 50;
+                this.baitLevel++;
+                this.updateStatus(`🪱 Upgraded bait to level ${this.baitLevel}!`);
+                this.updateUI();
+            } else {
+                this.updateStatus("❌ Not enough coins to buy bait!");
+            }
+        }
+
+        buyNet() {
+            if (this.coins >= 100 && !this.netOwned) {
+                this.coins -= 100;
+                this.netOwned = true;
+                this.updateStatus("🛠 Bought a fishing net! Catch multiple fish at once!");
+                this.updateUI();
+            } else if (this.netOwned) {
+                this.updateStatus("⚠️ You already own a fishing net!");
+            } else {
+                this.updateStatus("❌ Not enough coins to buy a net!");
+            }
+        }
+
+        updateUI() {
+            document.getElementById("coins").innerText = `💰 Coins: ${this.coins}`;
+            document.getElementById("fishCaught").innerText = `🐟 Fish Caught: ${this.fishCaught}`;
+            document.getElementById("baitLevel").innerText = `🪱 Bait Level: ${this.baitLevel}`;
+            document.getElementById("netStatus").innerText = this.netOwned ? "✅ Net Owned" : "❌ No Net";
+        }
+
+        updateStatus(message) {
+            document.getElementById("status").innerText = message;
+        }
+    }
+
+    const game = new FishingGame();
+</script>
